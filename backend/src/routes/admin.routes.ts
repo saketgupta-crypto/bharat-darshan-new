@@ -1,0 +1,33 @@
+import { Router } from "express";
+import * as a from "../controllers/admin.controller";
+import { authenticate, requirePermission, requireRole } from "../middleware/auth";
+import { validate } from "../middleware/validate";
+import { guideAdminSchema } from "../validators/content.validators";
+
+export const admin = Router();
+admin.use(authenticate, requireRole("ADMIN", "SUPER_ADMIN"));
+admin.get("/dashboard", a.dashboard);
+admin.get("/analytics", requirePermission("analytics:view"), a.analytics);
+admin.get("/users", requirePermission("users:manage"), a.listUsers);
+admin.patch("/users/:id/status", requirePermission("users:manage"), a.setUserStatus);
+admin.get("/guides", requirePermission("guides:manage"), a.listGuides);
+admin.post("/guides", requirePermission("guides:manage"), validate(guideAdminSchema), a.createGuide);
+admin.patch("/guides/:id", requirePermission("guides:manage"), validate(guideAdminSchema), a.updateGuide);
+admin.delete("/guides/:id", requirePermission("guides:manage"), a.deleteGuide);
+admin.get("/reviews", requirePermission("reviews:moderate"), a.listReviews);
+admin.patch("/reviews/:id", requirePermission("reviews:moderate"), a.moderateReview);
+admin.delete("/reviews/:id", requirePermission("reviews:moderate"), a.deleteReview);
+admin.get("/contacts", requirePermission("contacts:manage"), a.listContacts);
+admin.patch("/contacts/:id", requirePermission("contacts:manage"), a.updateContact);
+admin.delete("/contacts/:id", requirePermission("contacts:manage"), a.deleteContact);
+
+export const superAdmin = Router();
+superAdmin.use(authenticate, requireRole("SUPER_ADMIN"));
+superAdmin.get("/admins", a.listAdmins);
+superAdmin.post("/admins", a.createAdmin);
+superAdmin.patch("/users/:id/access", a.setRoleAndPermissions);
+superAdmin.get("/activity-logs", a.activityLogs);
+superAdmin.get("/ai-usage", a.aiUsage);
+superAdmin.get("/security", a.security);
+superAdmin.get("/settings", a.getSystemSettings);
+superAdmin.put("/settings", a.updateSystemSettings);

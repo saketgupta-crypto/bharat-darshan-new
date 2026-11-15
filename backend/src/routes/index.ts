@@ -1,0 +1,21 @@
+import { Router } from "express";
+import auth from "./auth.routes";
+import users from "./user.routes";
+import { destinations, hotels, guides, reviews, contacts } from "./content.routes";
+import { itineraries, ai } from "./itinerary.routes";
+import { admin, superAdmin } from "./admin.routes";
+
+const r = Router();
+r.get("/health", (_req, res) => res.json({ success: true, data: { status: "ok", uptime: process.uptime() } }));
+r.use("/auth", auth);
+r.use("/users", users);
+r.use("/destinations", destinations);
+r.use("/hotels", hotels);
+r.use("/guides", guides);
+r.use("/reviews", reviews);
+r.use("/contacts", contacts);
+r.use("/itineraries", itineraries);
+r.use("/ai", ai);
+r.use("/admin", admin);
+r.use("/super-admin", superAdmin);
+export default r;
