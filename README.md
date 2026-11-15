@@ -1,306 +1,356 @@
-# Bharat Darshan
+# Bharat Darshan 🇮🇳
 
-Full-stack Indian tourism platform: React + Vite frontend, Express + TypeScript + MongoDB backend, AI itinerary planner via OpenRouter.
+**Discover India. Explore its heritage. Plan your journey with AI.**
 
-```
-frontend/   React 19, TS, Vite, Tailwind v4, shadcn/ui, Axios (original design preserved)
-backend/    Express, TS, Mongoose, JWT, Zod, Helmet, Resend, Cloudinary, PDFKit, Vitest
-render.yaml (backend deploy)   frontend/vercel.json (SPA rewrites)
-```
+Bharat Darshan is a full-stack Indian tourism platform that helps travellers explore destinations, discover hotels and local guides, and create personalised travel itineraries with an AI-powered planner.
 
-## Panels and roles
-| Role | Home | What it does |
+<p align="center">
+  <a href="https://bharat-darshan-bice.vercel.app/">Live Frontend Demo</a>
+</p>
+
+> 
+---
+
+## ✨ Features
+
+### Traveller experience
+- Browse Indian destinations and view destination details.
+- Discover hotels and travel guides.
+- Search and filter destinations, hotels, and guides.
+- Generate personalised itineraries using AI.
+- Save and manage favourite destinations.
+- Manage trips, regenerate an itinerary day, and request AI modifications.
+- Export itineraries as PDF and share trips using public share links.
+- Submit and manage reviews.
+- Manage profile and preferences.
+
+### Role-based panels
+
+| Role | Panel | Capabilities |
 |---|---|---|
-| public | `/` | destinations, hotels, guides, planner (login needed to generate), contact, shared itineraries `/shared/:token` |
-| USER | `/dashboard` | overview, AI planner, My Trips (PDF, share, regenerate day, AI modify), favourites, reviews, profile and preferences |
-| GUIDE | `/guide` | profile, languages, pricing, availability, inquiries, reviews. Self-registers, **inactive until an admin approves** |
-| ADMIN | `/admin` | only the sections their granted permissions allow |
-| SUPER_ADMIN | `/super-admin` | everything, plus admin creation, permissions, activity logs, AI usage, security monitor, system settings |
+| Public visitor | `/` | Browse destinations, hotels, guides, contact page, and shared itineraries |
+| `USER` | `/dashboard` | Dashboard, AI planner, trips, favourites, reviews, profile, and preferences |
+| `GUIDE` | `/guide` | Manage guide profile, languages, pricing, availability, inquiries, and reviews |
+| `ADMIN` | `/admin` | Manage only the sections permitted by assigned permissions |
+| `SUPER_ADMIN` | `/super-admin` | Full administration, admin creation, permissions, activity logs, AI usage, security monitor, and system settings |
 
-Admin permissions: `users:manage destinations:write hotels:write guides:manage reviews:moderate contacts:manage analytics:view`. Only SUPER_ADMIN can grant them. The first SUPER_ADMIN is created by the seed script, never through the API. Frontend route guards are for UX only; every API route is authorised on the server.
+**Admin permissions:** `users:manage`, `destinations:write`, `hotels:write`, `guides:manage`, `reviews:moderate`, `contacts:manage`, and `analytics:view`.
 
-## Setup
-Requirements: Node 20+, a MongoDB Atlas (or local) database.
+Only a `SUPER_ADMIN` can grant admin permissions. The first `SUPER_ADMIN` is created through the seed script, not through public registration. Frontend route guards improve navigation and user experience; API authorization is enforced on the backend.
+
+### AI itinerary planner
+- Generates structured travel plans through OpenRouter.
+- Supports full itinerary regeneration, single-day regeneration, and itinerary modification.
+- Validates AI output before it is used by the application.
+- Treats prices and travel times as estimates; it does not claim live booking availability.
+- Applies a per-user AI request limit. The planner can also be disabled by a super admin.
+
+---
+
+## 🧰 Tech Stack
+
+| Area | Technologies |
+|---|---|
+| Frontend | React 19, TypeScript, Vite |
+| Styling & UI | Tailwind CSS v4, shadcn/ui |
+| API communication | Axios |
+| Backend | Node.js, Express, TypeScript |
+| Database | MongoDB, Mongoose |
+| Authentication | JWT, refresh-token rotation, bcrypt |
+| Validation | Zod |
+| AI | OpenRouter |
+| Email | Resend |
+| Media uploads | Cloudinary |
+| PDF generation | PDFKit |
+| Security | Helmet, CORS allowlist, rate limiting |
+| Testing | Vitest |
+| Frontend deployment configuration | Vercel |
+| Backend deployment configuration | Render |
+
+---
+
+## 📁 Project Structure
+
+```text
+bharat-darshan/
+├── README.md
+├── render.yaml
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── scripts/
+│   │   ├── services/
+│   │   ├── types/
+│   │   ├── utils/
+│   │   └── validators/
+│   ├── tests/
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── tsconfig.json
+│   └── vitest.config.ts
+└── frontend/
+    ├── public/
+    ├── src/
+    │   ├── components/
+    │   ├── context/
+    │   ├── hooks/
+    │   ├── lib/
+    │   ├── pages/
+    │   ├── services/
+    │   ├── styles/
+    │   ├── types/
+    │   └── utils/
+    ├── package.json
+    ├── package-lock.json
+    ├── tsconfig.json
+    ├── vercel.json
+    └── vite.config.ts
+```
+
+---
+
+## ⚙️ Local Setup
+
+### Prerequisites
+- Node.js 20 or later
+- npm
+- MongoDB Atlas account or a local MongoDB instance
+
+### 1. Clone the repository
 
 ```bash
-# backend
+git clone https://github.com/saketgupta-crypto/Bharat-darshan.git
+cd Bharat-darshan
+```
+
+### 2. Configure and run the backend
+
+```bash
 cd backend
-cp .env.example .env        # fill values (see below)
 npm install
-npm run typecheck && npm test
-npm run seed                # imports the 4 destinations / 3 hotels / 2 guides, creates super admin
-npm run dev                 # http://localhost:5001/api/v1/health
-
-# frontend
-cd ../frontend
-cp .env.example .env        # VITE_API_BASE_URL=http://localhost:5001/api/v1
-npm install && npm run typecheck && npm run dev
+cp .env.example .env
 ```
 
-### Environment (backend/.env)
-`MONGODB_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` (each 32+ random chars, different), `FRONTEND_URL` (comma-separated allowlist), `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `CLOUDINARY_*`, `RESEND_API_KEY`, `EMAIL_FROM`, `SEED_SUPER_ADMIN_EMAIL`, `SEED_SUPER_ADMIN_PASSWORD`.
-Without Resend keys, OTP and reset emails are printed to the server console in development (and fail in production). Without Cloudinary keys, uploads return a clear 503. Without OpenRouter keys the planner returns 503.
+Open `backend/.env` and add the required values (see [Environment Variables](#-environment-variables)).
 
-### AI planner
-Set `OPENROUTER_MODEL` to a model id currently listed at https://openrouter.ai/models (not hardcoded, so it never goes stale). The key stays on the server. Output is validated with Zod; malformed JSON is retried once, then returns 502. Prices and travel times are labelled as estimates, and the prompt forbids inventing live availability, hotel prices, opening hours or schedules. Per-user limit: 15 AI calls/hour. Super admins can switch the planner off.
+Run the checks and seed the database:
 
-### Auth design
-bcrypt (cost 12), 15-minute access token held in memory only, 7-day refresh token in an httpOnly cookie, rotated on every refresh; re-use of a rotated token revokes the whole session family. OTP email verification (10 min, 5 attempts). Reset links are single-use, 30 min, and sign out all sessions. Login/OTP/reset are rate limited, and accounts are never enumerable.
-
-## API (`/api/v1`)
-`auth/` register, verify-email, resend-otp, login, refresh, logout, forgot-password, reset-password, me
-`users/` profile (GET/PATCH), change-password, dashboard, favorites/:destinationId
-`destinations/` list (q, state, category, minBudget, maxBudget, sort, page, limit), featured, popular, states, :slug, :slug/related, + admin POST/PATCH/DELETE, :id/status, :id/images
-`hotels/` list (q, location, destination, minPrice, maxPrice, minRating, amenities, sort), :id, + admin CRUD and images
-`guides/` list (q, location, destination, language, minExperience, maxPrice, available), :id, `me/*` for the guide panel
-`reviews/` list, mine, POST, PATCH/DELETE own (one review per user per target)
-`contacts/` POST (rate limited, honeypot, confirmation email)
-`itineraries/` list, :id, PATCH, DELETE, :id/pdf, :id/share, shared/:token
-`ai/` generate-itinerary, regenerate-itinerary (whole or a single `day`), modify-itinerary
-`admin/*` and `super-admin/*` as used by the panels.
-Responses: `{ success: true, data, meta? }` or `{ success: false, error: { code, message, details? } }`.
-
-## Deployment
-**Backend (Render):** `render.yaml` builds `backend/` (`npm ci --include=dev && npm run build`, start `npm start`, health `/api/v1/health`). Set the `sync: false` variables in the dashboard, then run `npm run seed` once (Render shell or locally with the production URI). Set `FRONTEND_URL` to your Vercel URL.
-**Frontend (Vercel):** root directory `frontend`, env `VITE_API_BASE_URL=https://<render-app>.onrender.com/api/v1`. `vercel.json` handles SPA rewrites.
-**Cookies:** in production the refresh cookie is `Secure; SameSite=None`. Browsers increasingly block third-party cookies, so for reliable sessions put both apps on subdomains of one domain (e.g. `app.example.com` and `api.example.com`).
-**Atlas:** allow Render's outbound IPs (or 0.0.0.0/0 with a strong password) in Network Access.
-
-## Security notes
-Helmet, CORS allowlist, Zod validation on every write, escaped regex search, strict profile schema (no role escalation), DB-backed account status on every request (disabling an account takes effect immediately), upload type + magic-byte checks and 5 MB limit, central error handler with no stack traces in production. Not included: CSRF tokens (the API uses bearer tokens; the cookie is only usable on `/auth/*`), 2FA, malware scanning of uploads.
-
-## Known limitations
-No booking or payments (hotels and guides use "Enquire"; no live availability). The phone, address and hours on the Contact page are the original placeholder text; replace them with real details. Privacy and Terms pages are templates and need legal review.
-
+```bash
+npm run typecheck
+npm test
+npm run seed
 ```
-bharat-darshan-complete
-├─ README.md
-├─ backend
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ src
-│  │  ├─ app.ts
-│  │  ├─ config
-│  │  │  ├─ db.ts
-│  │  │  └─ env.ts
-│  │  ├─ controllers
-│  │  │  ├─ admin.controller.ts
-│  │  │  ├─ auth.controller.ts
-│  │  │  ├─ contact.controller.ts
-│  │  │  ├─ destination.controller.ts
-│  │  │  ├─ guide.controller.ts
-│  │  │  ├─ hotel.controller.ts
-│  │  │  ├─ itinerary.controller.ts
-│  │  │  ├─ review.controller.ts
-│  │  │  └─ user.controller.ts
-│  │  ├─ middleware
-│  │  │  ├─ auth.ts
-│  │  │  ├─ error.ts
-│  │  │  ├─ rateLimit.ts
-│  │  │  ├─ upload.ts
-│  │  │  └─ validate.ts
-│  │  ├─ models
-│  │  │  ├─ ActivityLog.ts
-│  │  │  ├─ AiUsage.ts
-│  │  │  ├─ Contact.ts
-│  │  │  ├─ Destination.ts
-│  │  │  ├─ Guide.ts
-│  │  │  ├─ Hotel.ts
-│  │  │  ├─ Itinerary.ts
-│  │  │  ├─ RefreshToken.ts
-│  │  │  ├─ Review.ts
-│  │  │  ├─ Setting.ts
-│  │  │  └─ User.ts
-│  │  ├─ routes
-│  │  │  ├─ admin.routes.ts
-│  │  │  ├─ auth.routes.ts
-│  │  │  ├─ content.routes.ts
-│  │  │  ├─ index.ts
-│  │  │  ├─ itinerary.routes.ts
-│  │  │  └─ user.routes.ts
-│  │  ├─ scripts
-│  │  │  └─ seed.ts
-│  │  ├─ server.ts
-│  │  ├─ services
-│  │  │  ├─ activity.service.ts
-│  │  │  ├─ ai.service.ts
-│  │  │  ├─ auth.service.ts
-│  │  │  ├─ cloudinary.service.ts
-│  │  │  ├─ email.service.ts
-│  │  │  ├─ pdf.service.ts
-│  │  │  └─ review.service.ts
-│  │  ├─ types
-│  │  │  └─ index.ts
-│  │  ├─ utils
-│  │  │  ├─ AppError.ts
-│  │  │  ├─ asyncHandler.ts
-│  │  │  ├─ pagination.ts
-│  │  │  ├─ response.ts
-│  │  │  ├─ text.ts
-│  │  │  └─ tokens.ts
-│  │  └─ validators
-│  │     ├─ auth.validators.ts
-│  │     └─ content.validators.ts
-│  ├─ tests
-│  │  ├─ access.test.ts
-│  │  ├─ ai.test.ts
-│  │  ├─ auth.test.ts
-│  │  ├─ helpers.ts
-│  │  └─ setup.ts
-│  ├─ tsconfig.json
-│  └─ vitest.config.ts
-├─ frontend
-│  ├─ components.json
-│  ├─ index.html
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ public
-│  │  ├─ 111.jpg
-│  │  ├─ 123.jpg
-│  │  ├─ Taj.jpeg
-│  │  ├─ beautiful-indian-landscape-taj-mahal-golden-hour.jpg
-│  │  ├─ contact.jpg
-│  │  ├─ contact2.jpg
-│  │  ├─ desert.jpeg
-│  │  ├─ guides.jpg
-│  │  ├─ hawa.jpeg
-│  │  ├─ hotel.jpg
-│  │  ├─ itinerary.jpg
-│  │  ├─ kashi-ghat.jpeg
-│  │  ├─ kerala.jpeg
-│  │  ├─ kumarakom-lake-resort.jpg
-│  │  ├─ man.jpg
-│  │  ├─ man2.webp
-│  │  ├─ oberoi.webp
-│  │  ├─ suryagarh.avif
-│  │  └─ varanasi.jpeg
-│  ├─ src
-│  │  ├─ App.tsx
-│  │  ├─ components
-│  │  │  ├─ CrudManager.tsx
-│  │  │  ├─ DataState.tsx
-│  │  │  ├─ DestinationCard.tsx
-│  │  │  ├─ Footer.tsx
-│  │  │  ├─ GuideCard.tsx
-│  │  │  ├─ Header.tsx
-│  │  │  ├─ HotelCard.tsx
-│  │  │  ├─ ItineraryCard.tsx
-│  │  │  ├─ ItineraryView.tsx
-│  │  │  ├─ Pager.tsx
-│  │  │  ├─ PanelLayout.tsx
-│  │  │  ├─ RequireAuth.tsx
-│  │  │  ├─ ReviewsSection.tsx
-│  │  │  ├─ theme-provider.tsx
-│  │  │  └─ ui
-│  │  │     ├─ accordion.tsx
-│  │  │     ├─ alert-dialog.tsx
-│  │  │     ├─ alert.tsx
-│  │  │     ├─ aspect-ratio.tsx
-│  │  │     ├─ avatar.tsx
-│  │  │     ├─ badge.tsx
-│  │  │     ├─ breadcrumb.tsx
-│  │  │     ├─ button.tsx
-│  │  │     ├─ calendar.tsx
-│  │  │     ├─ card.tsx
-│  │  │     ├─ carousel.tsx
-│  │  │     ├─ chart.tsx
-│  │  │     ├─ checkbox.tsx
-│  │  │     ├─ collapsible.tsx
-│  │  │     ├─ command.tsx
-│  │  │     ├─ context-menu.tsx
-│  │  │     ├─ dialog.tsx
-│  │  │     ├─ drawer.tsx
-│  │  │     ├─ dropdown-menu.tsx
-│  │  │     ├─ form.tsx
-│  │  │     ├─ hover-card.tsx
-│  │  │     ├─ input-otp.tsx
-│  │  │     ├─ input.tsx
-│  │  │     ├─ label.tsx
-│  │  │     ├─ menubar.tsx
-│  │  │     ├─ navigation-menu.tsx
-│  │  │     ├─ pagination.tsx
-│  │  │     ├─ popover.tsx
-│  │  │     ├─ progress.tsx
-│  │  │     ├─ radio-group.tsx
-│  │  │     ├─ resizable.tsx
-│  │  │     ├─ scroll-area.tsx
-│  │  │     ├─ select.tsx
-│  │  │     ├─ separator.tsx
-│  │  │     ├─ sheet.tsx
-│  │  │     ├─ sidebar.tsx
-│  │  │     ├─ skeleton.tsx
-│  │  │     ├─ slider.tsx
-│  │  │     ├─ sonner.tsx
-│  │  │     ├─ switch.tsx
-│  │  │     ├─ table.tsx
-│  │  │     ├─ tabs.tsx
-│  │  │     ├─ textarea.tsx
-│  │  │     ├─ toast.tsx
-│  │  │     ├─ toaster.tsx
-│  │  │     ├─ toggle-group.tsx
-│  │  │     ├─ toggle.tsx
-│  │  │     ├─ tooltip.tsx
-│  │  │     ├─ use-mobile.tsx
-│  │  │     └─ use-toast.ts
-│  │  ├─ context
-│  │  │  └─ AuthContext.tsx
-│  │  ├─ globals.css
-│  │  ├─ hooks
-│  │  │  ├─ use-mobile.ts
-│  │  │  ├─ use-toast.ts
-│  │  │  └─ useAsync.ts
-│  │  ├─ lib
-│  │  │  └─ utils.ts
-│  │  ├─ main.tsx
-│  │  ├─ pages
-│  │  │  ├─ ContactPage.tsx
-│  │  │  ├─ DashboardPage.tsx
-│  │  │  ├─ DestinationDetailPage.tsx
-│  │  │  ├─ DestinationsPage.tsx
-│  │  │  ├─ GuidesPage.tsx
-│  │  │  ├─ HomePage.tsx
-│  │  │  ├─ HotelDetailPage.tsx
-│  │  │  ├─ HotelsPage.tsx
-│  │  │  ├─ ItineraryPage.tsx
-│  │  │  ├─ ProfilePage.tsx
-│  │  │  ├─ SharedItineraryPage.tsx
-│  │  │  ├─ StaticPages.tsx
-│  │  │  ├─ admin
-│  │  │  │  └─ AdminPages.tsx
-│  │  │  ├─ auth
-│  │  │  │  ├─ ForgotPasswordPage.tsx
-│  │  │  │  ├─ LoginPage.tsx
-│  │  │  │  ├─ ResetPasswordPage.tsx
-│  │  │  │  ├─ SignupPage.tsx
-│  │  │  │  └─ VerifyEmailPage.tsx
-│  │  │  ├─ guide
-│  │  │  │  └─ GuidePages.tsx
-│  │  │  ├─ superadmin
-│  │  │  │  └─ SuperAdminPages.tsx
-│  │  │  └─ user
-│  │  │     ├─ FavoritesPage.tsx
-│  │  │     ├─ MyReviewsPage.tsx
-│  │  │     ├─ MyTripsPage.tsx
-│  │  │     └─ TripDetailPage.tsx
-│  │  ├─ services
-│  │  │  ├─ admin.service.ts
-│  │  │  ├─ api.ts
-│  │  │  ├─ auth.service.ts
-│  │  │  ├─ destination.service.ts
-│  │  │  ├─ guide.service.ts
-│  │  │  ├─ hotel.service.ts
-│  │  │  ├─ itinerary.service.ts
-│  │  │  ├─ misc.service.ts
-│  │  │  └─ user.service.ts
-│  │  ├─ styles
-│  │  ├─ types
-│  │  │  └─ index.ts
-│  │  ├─ utils
-│  │  ├─ vite-env.d.ts
-│  │  └─ {services,context,types,utils}
-│  ├─ tsconfig.json
-│  ├─ vercel.json
-│  └─ vite.config.ts
-└─ render.yaml
 
+Start the development server:
+
+```bash
+npm run dev
 ```
+
+The backend health endpoint is:
+
+```text
+http://localhost:5001/api/v1/health
+```
+
+### 3. Configure and run the frontend
+
+Open a second terminal:
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
+```
+
+Set the frontend API URL in `frontend/.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:5001/api/v1
+```
+
+Start the frontend:
+
+```bash
+npm run dev
+```
+
+Vite normally serves the app at:
+
+```text
+http://localhost:5173
+```
+
+---
+
+## 🔐 Environment Variables
+
+Never commit real `.env` files, API keys, database credentials, or JWT secrets. Use `.env.example` as the template and configure production values in the hosting provider's environment settings.
+
+### Backend (`backend/.env`)
+
+| Variable | Purpose |
+|---|---|
+| `PORT` | Backend server port (the project setup uses `5001`) |
+| `NODE_ENV` | Runtime environment, such as `development` or `production` |
+| `MONGODB_URI` | MongoDB connection string |
+| `JWT_ACCESS_SECRET` | Secret used to sign access tokens |
+| `JWT_REFRESH_SECRET` | Separate secret used to sign refresh tokens |
+| `FRONTEND_URL` | Allowed frontend origin(s); use the format expected by the backend configuration |
+| `OPENROUTER_API_KEY` | OpenRouter API key for AI itinerary features |
+| `OPENROUTER_MODEL` | OpenRouter model identifier |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+| `RESEND_API_KEY` | Resend API key for email delivery |
+| `EMAIL_FROM` | Verified sender address used for outgoing email |
+| `SEED_SUPER_ADMIN_EMAIL` | Email for the initial super-admin account |
+| `SEED_SUPER_ADMIN_PASSWORD` | Password for the initial super-admin account |
+
+Use different, randomly generated secrets for `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`. Each must meet the minimum length required by the backend environment validator.
+
+### Frontend (`frontend/.env`)
+
+```env
+VITE_API_BASE_URL=http://localhost:5001/api/v1
+```
+
+Only expose values intended to be public in frontend environment variables. Never put private API keys or database credentials in `VITE_*` variables.
+
+### Optional service behaviour
+- Without Resend credentials, development email behaviour follows the backend email service configuration; production email delivery requires valid provider configuration.
+- Image uploads require valid Cloudinary credentials.
+- AI itinerary generation requires a valid OpenRouter API key and model configuration.
+
+---
+
+## 🔌 API Overview
+
+Base path: `/api/v1`
+
+| Endpoint group | Main functionality |
+|---|---|
+| `auth/` | Registration, email verification, login, refresh, logout, forgot password, reset password, and current user |
+| `users/` | Profile, password changes, dashboard, and favourites |
+| `destinations/` | Destination listing, filters, featured/popular destinations, states, details, and admin management |
+| `hotels/` | Hotel listing, filters, details, and admin management |
+| `guides/` | Guide listing, filters, details, and guide self-service routes |
+| `reviews/` | List, create, update, and delete reviews according to ownership rules |
+| `contacts/` | Contact form submission |
+| `itineraries/` | Saved itineraries, updates, deletion, PDF export, sharing, and shared itinerary access |
+| `ai/` | Itinerary generation, full/day regeneration, and AI modification |
+| `admin/` | Admin panel operations subject to assigned permissions |
+| `super-admin/` | Super-admin operations and system management |
+
+Successful responses use the following general shape:
+
+```json
+{
+  "success": true,
+  "data": {},
+  "meta": {}
+}
+```
+
+Error responses use:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "A readable error message"
+  }
+}
+```
+
+---
+
+## 🚀 Deployment
+
+### Frontend — Vercel
+1. Import the GitHub repository into Vercel.
+2. Set the project root directory to `frontend`.
+3. Add the environment variable:
+
+   ```env
+   VITE_API_BASE_URL=https://YOUR-RENDER-SERVICE.onrender.com/api/v1
+   ```
+
+4. Deploy. The `frontend/vercel.json` file contains the SPA rewrite configuration.
+
+### Backend — Render
+1. Create a new Render web service from the GitHub repository.
+2. Use the repository's `render.yaml` configuration.
+3. Add all required backend environment variables in the Render dashboard.
+4. Set `FRONTEND_URL` to the deployed frontend origin.
+5. Ensure MongoDB Atlas Network Access permits connections from the deployed backend.
+6. Run the seed script once against the intended production database:
+
+   ```bash
+   npm run seed
+   ```
+
+   Run it from the backend service context or locally with the production database URI, as appropriate.
+
+7. Verify the health endpoint:
+
+   ```text
+   https://YOUR-RENDER-SERVICE.onrender.com/api/v1/health
+   ```
+
+**Production note:** The frontend and backend must use matching origins, CORS settings, and cookie settings. Test registration, email verification, login, refresh, and logout in the deployed browser environment. Cross-site cookie restrictions can affect refresh-token sessions when the frontend and API use unrelated domains.
+
+---
+
+## 🛡️ Security
+
+The backend includes:
+- Password hashing with bcrypt.
+- Short-lived access tokens and refresh-token rotation.
+- Refresh-token reuse detection and session-family revocation.
+- Email OTP verification and single-use password-reset links.
+- Rate limiting on sensitive authentication and AI endpoints.
+- Helmet security headers and a configured CORS allowlist.
+- Zod validation for write operations.
+- Escaped search patterns and strict profile updates.
+- Server-side role and permission checks.
+- Upload type and file-signature checks with a 5 MB limit.
+- Centralised error handling that avoids exposing stack traces in production.
+
+**Known security scope:** The current project documentation does not claim 2FA, malware scanning for uploads, or a separate CSRF-token mechanism. Review the authentication and cookie configuration before production use.
+
+---
+
+## ⚠️ Known Limitations
+
+- Hotel and guide discovery currently uses enquiry flows; live booking, availability checks, and payments are not included.
+- Contact-page phone number, address, and business hours are placeholder content and should be replaced with verified details.
+- Privacy Policy and Terms pages are templates and require appropriate legal review.
+- AI-generated prices and travel times are estimates, not live quotes.
+- Production functionality depends on correctly configured database and third-party service credentials.
+
+---
+
+## 🧪 Testing
+
+Run backend checks from the `backend` directory:
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+Run frontend checks using the scripts available in `frontend/package.json`.
+
+---
+
+<p align="center">
+  <strong>Bharat Darshan</strong><br/>
+  Explore the beauty, culture, and heritage of India. 🇮🇳
+</p>
