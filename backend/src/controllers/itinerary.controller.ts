@@ -53,7 +53,8 @@ export const regenerate = asyncHandler(async (req, res) => {
     it.set("dailyPlans", plans);
   } else {
     const { result } = await generateItinerary(req.user!.id, toInput(it), "regenerate");
-    applyResult(it, result);
+    // applyResult(it, result);
+    applyResult(it, result as AiResult);
   }
   await it.save();
   ok(res, it);
@@ -62,7 +63,15 @@ export const regenerate = asyncHandler(async (req, res) => {
 export const modify = asyncHandler(async (req, res) => {
   const { itineraryId, instruction } = req.body as { itineraryId: string; instruction: string };
   const it = await owned(itineraryId, req.user!.id);
-  applyResult(it, await modifyItinerary(req.user!.id, toInput(it), toResult(it), instruction));
+  // applyResult(it, await modifyItinerary(req.user!.id, toInput(it), toResult(it), instruction));
+  const updatedResult = await modifyItinerary(
+  req.user!.id,
+  toInput(it),
+  toResult(it),
+  instruction
+);
+
+applyResult(it, updatedResult as AiResult);
   await it.save();
   ok(res, it);
 });

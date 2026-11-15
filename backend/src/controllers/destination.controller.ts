@@ -41,7 +41,17 @@ export const list = asyncHandler(async (req, res) => {
   if (q.minBudget !== undefined || q.maxBudget !== undefined) {
     filter.averageBudget = { ...(q.minBudget !== undefined ? { $gte: q.minBudget } : {}), ...(q.maxBudget !== undefined ? { $lte: q.maxBudget } : {}) };
   }
-  const sort = ({ popular: { viewCount: -1 }, rating: { avgRating: -1 }, budget_asc: { averageBudget: 1 }, budget_desc: { averageBudget: -1 }, newest: { createdAt: -1 } } as const)[q.sort];
+  // const sort = ({ popular: { viewCount: -1 }, rating: { avgRating: -1 }, budget_asc: { averageBudget: 1 }, budget_desc: { averageBudget: -1 }, newest: { createdAt: -1 } } as const)[q.sort];
+  const sortOptions: Record<string, Record<string, 1 | -1>> = {
+  popular: { viewCount: -1 },
+  rating: { avgRating: -1 },
+  budget_asc: { averageBudget: 1 },
+  budget_desc: { averageBudget: -1 },
+  newest: { createdAt: -1 },
+};
+
+const sort = sortOptions[q.sort];
+
   const [items, total] = await Promise.all([
     Destination.find(filter).sort(sort).skip((q.page - 1) * q.limit).limit(q.limit),
     Destination.countDocuments(filter),

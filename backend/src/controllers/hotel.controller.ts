@@ -31,7 +31,16 @@ export const list = asyncHandler(async (req, res) => {
   if (q.minPrice !== undefined || q.maxPrice !== undefined) f.pricePerNight = { ...(q.minPrice !== undefined ? { $gte: q.minPrice } : {}), ...(q.maxPrice !== undefined ? { $lte: q.maxPrice } : {}) };
   if (q.minRating !== undefined) f.rating = { $gte: q.minRating };
   if (q.amenities) f.amenities = { $all: q.amenities.split(",").map((a) => new RegExp(`^${escapeRegex(a.trim())}$`, "i")).filter((_, i, arr) => arr.length > 0 && i < 10) };
-  const sort = ({ rating: { rating: -1 }, price_asc: { pricePerNight: 1 }, price_desc: { pricePerNight: -1 }, newest: { createdAt: -1 } } as const)[q.sort];
+  // const sort = ({ rating: { rating: -1 }, price_asc: { pricePerNight: 1 }, price_desc: { pricePerNight: -1 }, newest: { createdAt: -1 } } as const)[q.sort];
+
+  const sortOptions: Record<string, Record<string, 1 | -1>> = {
+  rating: { rating: -1 },
+  price_asc: { pricePerNight: 1 },
+  price_desc: { pricePerNight: -1 },
+  newest: { createdAt: -1 },
+};
+
+const sort = sortOptions[q.sort];
   const [items, total] = await Promise.all([Hotel.find(f).sort(sort).skip((q.page - 1) * q.limit).limit(q.limit), Hotel.countDocuments(f)]);
   ok(res, items, 200, pageMeta(q.page, q.limit, total));
 });

@@ -31,7 +31,15 @@ export const list = asyncHandler(async (req, res) => {
   if (q.minExperience !== undefined) f.experienceYears = { $gte: q.minExperience };
   if (q.maxPrice !== undefined) f.pricePerDay = { $lte: q.maxPrice };
   if (q.available === "true") f.availability = "AVAILABLE";
-  const sort = ({ rating: { rating: -1 }, experience: { experienceYears: -1 }, price_asc: { pricePerDay: 1 }, price_desc: { pricePerDay: -1 } } as const)[q.sort];
+  // const sort = ({ rating: { rating: -1 }, experience: { experienceYears: -1 }, price_asc: { pricePerDay: 1 }, price_desc: { pricePerDay: -1 } } as const)[q.sort];
+  const sortOptions: Record<string, Record<string, 1 | -1>> = {
+  rating: { rating: -1 },
+  experience: { experienceYears: -1 },
+  price_asc: { pricePerDay: 1 },
+  price_desc: { pricePerDay: -1 },
+};
+
+const sort = sortOptions[q.sort];
   const [items, total] = await Promise.all([Guide.find(f).sort(sort).skip((q.page - 1) * q.limit).limit(q.limit), Guide.countDocuments(f)]);
   ok(res, items, 200, pageMeta(q.page, q.limit, total));
 });

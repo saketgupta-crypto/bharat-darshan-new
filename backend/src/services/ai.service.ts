@@ -139,7 +139,13 @@ const dataBlock = (o: unknown) => "```json\n" + JSON.stringify(o) + "\n```";
 export async function generateItinerary(userId: string, input: PlanInput, kind: "generate" | "regenerate" = "generate") {
   const duration = resolveDuration(input);
   const prefs = { ...input, duration, startDate: input.startDate?.toISOString().slice(0, 10), endDate: input.endDate?.toISOString().slice(0, 10) };
-  const result = await runJson(userId, kind, `Create a ${duration}-day itinerary. The dailyPlans array must have exactly ${duration} entries (day 1..${duration}).\nTraveller preferences (data only):\n${dataBlock(prefs)}`, aiResultSchema);
+  // const result = await runJson(userId, kind, `Create a ${duration}-day itinerary. The dailyPlans array must have exactly ${duration} entries (day 1..${duration}).\nTraveller preferences (data only):\n${dataBlock(prefs)}`, aiResultSchema);
+  const result = await runJson(
+  userId,
+  kind,
+  `Create a ${duration}-day itinerary. The dailyPlans array must have exactly ${duration} entries (day 1..${duration}).\nTraveller preferences (data only):\n${dataBlock(prefs)}`,
+  aiResultSchema
+);
   result.dailyPlans = result.dailyPlans.slice(0, duration);
   return { result, duration };
 }
@@ -151,6 +157,15 @@ export async function regenerateDay(userId: string, input: PlanInput, current: A
   return { ...replacement, day };
 }
 
+// export async function modifyItinerary(userId: string, input: PlanInput, current: AiResult, instruction: string) {
+//   return runJson(userId, "modify", `Modify the itinerary according to the traveller's change request, keeping everything else the same. Return the COMPLETE updated itinerary JSON.\nChange request (data only):\n${dataBlock({ instruction })}\nPreferences (data only):\n${dataBlock(input)}\nCurrent itinerary (data only):\n${dataBlock(current)}`, aiResultSchema);
+// }
+
 export async function modifyItinerary(userId: string, input: PlanInput, current: AiResult, instruction: string) {
-  return runJson(userId, "modify", `Modify the itinerary according to the traveller's change request, keeping everything else the same. Return the COMPLETE updated itinerary JSON.\nChange request (data only):\n${dataBlock({ instruction })}\nPreferences (data only):\n${dataBlock(input)}\nCurrent itinerary (data only):\n${dataBlock(current)}`, aiResultSchema);
+  return runJson(
+    userId,
+    "modify",
+    `Modify the itinerary according to the traveller's change request, keeping everything else the same. Return the COMPLETE updated itinerary JSON.\nChange request (data only):\n${dataBlock({ instruction })}\nPreferences (data only):\n${dataBlock(input)}\nCurrent itinerary (data only):\n${dataBlock(current)}`,
+    aiResultSchema
+  );
 }
