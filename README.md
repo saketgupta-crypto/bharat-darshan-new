@@ -5,7 +5,7 @@
 Bharat Darshan is a full-stack Indian tourism platform that helps travellers explore destinations, discover hotels and local guides, and create personalised travel itineraries with an AI-powered planner.
 
 <p align="center">
-  <a href="https://bharat-darshan-bice.vercel.app/">Live Frontend Demo</a>
+  <a href="https://bharat-darshan-new.vercel.app/">Live Frontend Demo</a>
 </p>
 
 > 
